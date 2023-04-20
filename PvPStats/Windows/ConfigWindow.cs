@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
-namespace SamplePlugin.Windows;
+namespace PvPStats.Windows;
 
 public class ConfigWindow : Window, IDisposable
 {
     private Configuration Configuration;
 
-    public ConfigWindow(Plugin plugin) : base(
+    public ConfigWindow(PvPStats plugin) : base(
         "A Wonderful Configuration Window",
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)

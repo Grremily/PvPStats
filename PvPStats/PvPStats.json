@@ -1,0 +1,13 @@
+{
+  "Author": "Emily",
+  "Name": "PvP Stats",
+  "Punchline": "Ever wanted to track your PvP matches? Well now you can!",
+  "Description": "A description that shows up in /xlplugins. List any major slash-command(s).",
+  "InternalName": "PvPStats",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "PvP",
+    "Stats",
+    "Statistics"
+  ]
+}
