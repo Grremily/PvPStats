@@ -10,7 +10,6 @@ using Dalamud.Game.DutyState;
 using Dalamud.Game.Gui;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using DutyTracker.Services;
 using PvPStats.Services;
 
 namespace PvPStats;

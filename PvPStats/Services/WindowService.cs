@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Dalamud.Interface.Windowing;
 
-namespace DutyTracker.Services;
+namespace PvPStats.Services;
 
 public sealed class WindowService : IDisposable
 {

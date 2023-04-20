@@ -2,78 +2,81 @@ using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
+using Dalamud.Data;
 using PvPStats.PvP_Events;
 using PvPStats.Windows;
+using PvPStats.Services;
 
-namespace PvPStats
+
+namespace PvPStats;
+
+using PvPStats_Configuration = Configuration;
+
+public sealed class PvPStats : IDalamudPlugin
 {
-    public sealed class PvPStats : IDalamudPlugin
+    public string Name => "DutyTracker";
+    private const string CommandName = "/dt";
+
+    private DalamudPluginInterface PluginInterface { get; init; }
+    private CommandManager CommandManager { get; init; }
+
+    public Configuration Configuration { get; init; }
+    public readonly PvPManager PvPManager;
+
+
+    public PvPStats(
+        [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
+        [RequiredVersion("1.0")] CommandManager commandManager)
     {
-        public string Name => "PvP Stats";
-        private const string CommandName = "/pvpstats";
+        PluginInterface = pluginInterface;
+        CommandManager = commandManager;
 
-        private DalamudPluginInterface PluginInterface { get; init; }
-        private CommandManager CommandManager { get; init; }
-        public Configuration Configuration { get; init; }
-        public WindowSystem WindowSystem = new("PvPStats");
-        public readonly PvPManager PvPManager;
+        PluginInterface.Create<Service>();
+        Service.PvPEventService = new PvPEventService();
+        Service.PlayerCharacterState = new PlayerCharacterState();
+        Service.WindowService = new WindowService();
 
-        private ConfigWindow ConfigWindow { get; init; }
-        private MainWindow MainWindow { get; init; }
+        Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Configuration.Initialize(PluginInterface);
 
-        public PvPStats(
-            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-            [RequiredVersion("1.0")] CommandManager commandManager)
+        PvPManager = PluginInterface.Create<PvPManager>(Configuration)!;
+
+        Service.WindowService.AddWindow("MainWindow", new MainWindow(PvPManager, Configuration));
+        Service.WindowService.AddWindow("DutyExplorer", new DutyExplorerWindow(PvPManager));
+        Service.WindowService.AddWindow("Debug", new DebugWindow());
+
+        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            PluginInterface = pluginInterface;
-            CommandManager = commandManager;
+            HelpMessage = "Open the Duty Tracker menu",
+        });
 
-            PluginInterface.Create<Service>();
+        PluginInterface.UiBuilder.Draw += DrawUi;
+        PluginInterface.UiBuilder.OpenConfigUi += OpenSettings;
+    }
 
-            Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            Configuration.Initialize(PluginInterface);
+    public void Dispose()
+    {
+        CommandManager.RemoveHandler(CommandName);
+        Service.WindowService.Dispose();
+        Service.PlayerCharacterState.Dispose();
+        Service.PvPEventService.Dispose();
+    }
 
-            PvPManager = PluginInterface.Create<PvPManager>(Configuration)!;
+    private void OnCommand(string command, string args)
+    {
+        if (args == "debug")
+            Service.WindowService.OpenWindow("Debug");
+        else
+            Service.WindowService.ToggleWindow("MainWindow");
+    }
 
-            ConfigWindow = new ConfigWindow(this);
-            MainWindow = new MainWindow(this);
-            
-            WindowSystem.AddWindow(ConfigWindow);
-            WindowSystem.AddWindow(MainWindow);
+    private void OpenSettings()
+    {
+        Service.WindowService.OpenWindow("MainWindow");
+    }
 
-            CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
-            {
-                HelpMessage = "A useful message to display in /xlhelp"
-            });
-
-            PluginInterface.UiBuilder.Draw += DrawUI;
-            PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
-        }
-
-        public void Dispose()
-        {
-            this.WindowSystem.RemoveAllWindows();
-            
-            ConfigWindow.Dispose();
-            MainWindow.Dispose();
-            
-            this.CommandManager.RemoveHandler(CommandName);
-        }
-
-        private void OnCommand(string command, string args)
-        {
-            // in response to the slash command, just display our main ui
-            MainWindow.IsOpen = true;
-        }
-
-        private void DrawUI()
-        {
-            this.WindowSystem.Draw();
-        }
-
-        public void DrawConfigUI()
-        {
-            ConfigWindow.IsOpen = true;
-        }
+    private void DrawUi()
+    {
+        Service.WindowService.Draw();
     }
 }

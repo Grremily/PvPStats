@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
-using DutyTracker.Duty_Events;
-using DutyTracker.Extensions;
+using PvPStats.PvP_Events;
+using PvPStats.Extensions;
 using ImGuiNET;
 
-namespace DutyTracker.Windows;
+namespace PvPStats.Windows;
 
 public class DutyExplorerWindow : Window, IDisposable
 {
-    private readonly DutyManager _dutyManager;
+    private readonly PvPManager _PvPManager;
     private          Duty?       _selectedDuty;
     private          Run?        _selectedRun;
 
@@ -18,7 +18,7 @@ public class DutyExplorerWindow : Window, IDisposable
 
     private const ImGuiTableFlags DeathsTableFlags = ImGuiTableFlags.BordersV | ImGuiTableFlags.BordersOuterH | ImGuiTableFlags.RowBg;
 
-    public DutyExplorerWindow(DutyManager dutyManager)
+    public DutyExplorerWindow(PvPManager PvPManager)
         : base("Duty Explorer")
     {
         SizeConstraints = new WindowSizeConstraints
@@ -27,7 +27,7 @@ public class DutyExplorerWindow : Window, IDisposable
                               MaximumSize = new Vector2(float.MaxValue, float.MaxValue),
                           };
 
-        this._dutyManager = dutyManager;
+        this._PvPManager = PvPManager;
 
     }
 
@@ -50,12 +50,12 @@ public class DutyExplorerWindow : Window, IDisposable
     {
         var index = 0;
         if (ImGui.BeginChild("##Duties", size, true)) {
-            if (_dutyManager.AnyDutiesStarted) {
+            if (_PvPManager.AnyDutiesStarted) {
                 var listWidth  = ImGui.GetContentRegionAvail().X;
                 var listLength = (ImGui.GetContentRegionAvail().Y / ImGui.GetTextLineHeightWithSpacing()) * ImGui.GetTextLineHeightWithSpacing();
 
                 if (ImGui.BeginListBox("##DutyList", new Vector2(listWidth, listLength))) {
-                    foreach (var duty in _dutyManager.DutyList) {
+                    foreach (var duty in _PvPManager.DutyList) {
                         if (ImGui.Selectable($"{duty.TerritoryType.PlaceName.Value?.Name ?? "Report This"}##{index}", _selectedDuty == duty)) {
                             _selectedDuty = _selectedDuty == duty ? null : duty;
                             _selectedRun  = null;
